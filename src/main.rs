@@ -1,4 +1,6 @@
 extern crate getopts;
+use std::fs::File;
+use std::io::Read;
 
 fn do_work(args: Vec<String>, max: String, used: String) {
     let mut child = std::process::Command::new(&args[0]).
@@ -6,16 +8,45 @@ fn do_work(args: Vec<String>, max: String, used: String) {
         spawn().
         expect("Failed to start");
 
-    let memory_inspector = std::thread::spawn(|| {
+    // open channel so we can communicate with our watcher
+    let (tx, rx) = std::sync::mpsc::channel();
+
+    let memory_watcher = std::thread::spawn(move || {
         loop {
-            std::thread::sleep(std::time::Duration::new(2, 0));
-            break;
+            std::thread::sleep_ms(1_000);
+
+            read_file(&max);
+            read_file(&used);
+
+            // TODO: wrap in a method
+            match rx.try_recv() {
+                // Child is done or process failed ... time to stop
+                Ok(_) | Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                    println!("Terminating.");
+                    break;
+                }
+                // Child is not done ... continue
+                Err(std::sync::mpsc::TryRecvError::Empty) => {
+                    println!("Nothing.");
+                }
+            }
         }
     });
 
-    child.wait();
+    // wait for the command to finish
+    child.wait().expect("failed to wait");
 
-    memory_inspector.join().expect("joining memory_inspector fail");
+    // tell the watcher to stop
+    let _ = tx.send(());
+
+    memory_watcher.join().expect("joining memory_inspector fail");
+}
+
+fn read_file(path: &String) -> String {
+    let mut data = String::new();
+    let mut file = File::open(path).expect("Unable to open file"); // TODO: tell user what file was missing
+    file.read_to_string(&mut data).expect("Unable to read string");
+    data
 }
 
 fn print_usage(program: &str, opts: getopts::Options) {
@@ -31,7 +62,7 @@ fn main() {
     opts.optopt("m", "max-memory-file", "set file to read maximum memory from", "PATH");
     opts.optopt("u", "used-memory-file", "set file to read used memory from", "PATH");
     opts.optflag("h", "help", "print this help menu");
-    let matches = match opts.parse(&args) {
+    let matches = match opts.parse(&args) { // TODO: use unwrap_or_else or expect
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()) }
     };
@@ -56,5 +87,5 @@ fn main() {
     let used_memory_file = matches.opt_str("used-memory-file").
         unwrap_or_else(|| "/sys/fs/cgroup/memory/memory.usage_in_bytes".to_string());
 
-    do_work(matches.free, max_memory_file, used_memory_file)
+    do_work(matches.free, max_memory_file, used_memory_file);
 }
