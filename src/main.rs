@@ -1,22 +1,33 @@
 extern crate getopts;
 
-use getopts::Options;
-use std::env;
+fn do_work(args: Vec<String>, max: String, used: String) {
+    let mut child = std::process::Command::new(&args[0]).
+        args(&args[1..]).
+        spawn().
+        expect("Failed to start");
 
-fn do_work(inp: &Vec<String>, max: String, used: String) {
-    println!("{:?}", inp);
+    let memory_inspector = std::thread::spawn(|| {
+        loop {
+            std::thread::sleep(std::time::Duration::new(2, 0));
+            break;
+        }
+    });
+
+    child.wait();
+
+    memory_inspector.join().expect("joining memory_inspector fail");
 }
 
-fn print_usage(program: &str, opts: Options) {
+fn print_usage(program: &str, opts: getopts::Options) {
     let brief = format!("Usage: {} FILE [options]", program);
     print!("{}", opts.usage(&brief));
 }
 
 fn main() {
-    let mut args: Vec<String> = env::args().collect();
+    let mut args: Vec<String> = std::env::args().collect();
     let program = args.remove(0);
 
-    let mut opts = Options::new();
+    let mut opts = getopts::Options::new();
     opts.optopt("m", "max-memory-file", "set file to read maximum memory from", "PATH");
     opts.optopt("u", "used-memory-file", "set file to read used memory from", "PATH");
     opts.optflag("h", "help", "print this help menu");
@@ -38,12 +49,12 @@ fn main() {
     }
 
     // Parse max-memory file location or use default
-    let mut max_memory_file = matches.opt_str("max-memory-file").
+    let max_memory_file = matches.opt_str("max-memory-file").
         unwrap_or_else(|| "/sys/fs/cgroup/memory/memory.stat".to_string());
 
     // Parse used-memory file location or use default
-    let mut used_memory_file = matches.opt_str("used-memory-file").
+    let used_memory_file = matches.opt_str("used-memory-file").
         unwrap_or_else(|| "/sys/fs/cgroup/memory/memory.usage_in_bytes".to_string());
 
-    do_work(&matches.free, max_memory_file, used_memory_file)
+    do_work(matches.free, max_memory_file, used_memory_file)
 }
