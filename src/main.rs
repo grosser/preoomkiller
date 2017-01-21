@@ -21,7 +21,8 @@ fn main() {
     let program = args[0].clone();
 
     let mut opts = Options::new();
-    opts.optopt("o", "", "set output file name", "NAME");
+    opts.optopt("m", "max-memory-file", "set file to read maximum memory from", "PATH");
+    opts.optopt("u", "used-memory-file", "set file to read used memory from", "PATH");
     opts.optflag("h", "help", "print this help menu");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -31,7 +32,7 @@ fn main() {
         print_usage(&program, opts);
         return;
     }
-    let output = matches.opt_str("o");
+    let output = matches.opt_str("max-memory-file");
     let input = if !matches.free.is_empty() {
         matches.free[0].clone()
     } else {
