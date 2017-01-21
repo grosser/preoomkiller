@@ -3,7 +3,7 @@ extern crate getopts;
 use getopts::Options;
 use std::env;
 
-fn do_work(inp: &Vec<String>) {
+fn do_work(inp: &Vec<String>, max: String, used: String) {
     println!("{:?}", inp);
 }
 
@@ -28,28 +28,22 @@ fn main() {
     // show usage when run without argv
     if matches.free.is_empty() {
         print_usage(&program, opts);
-        return;
+        return
     }
 
     // User wants help
     if matches.opt_present("h") {
         print_usage(&program, opts);
-        return;
+        return
     }
 
     // Parse max-memory file location or use default
-    let mut max_memory_file = "/sys/fs/cgroup/memory/memory.stat".to_string();
-    let max_options = matches.opt_str("max-memory-file");
-    if max_options.is_some() {
-        max_memory_file = max_options.unwrap();
-    }
+    let mut max_memory_file = matches.opt_str("max-memory-file").
+        unwrap_or_else(|| "/sys/fs/cgroup/memory/memory.stat".to_string());
 
     // Parse used-memory file location or use default
-    let mut used_memory_file = "/sys/fs/cgroup/memory/memory.usage_in_bytes".to_string();
-    let used_options = matches.opt_str("used-memory-file");
-    if used_options.is_some() {
-        used_memory_file = used_options.unwrap();
-    }
+    let mut used_memory_file = matches.opt_str("used-memory-file").
+        unwrap_or_else(|| "/sys/fs/cgroup/memory/memory.usage_in_bytes".to_string());
 
-    do_work(&matches.free);
+    do_work(&matches.free, max_memory_file, used_memory_file)
 }
