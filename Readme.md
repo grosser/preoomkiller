@@ -42,7 +42,8 @@ Options:
  - take `target/release/preoomkiller` binary
 
 ### TODO
- - let through all unknown options
- - make interval configureable
  - find safe way of doing wait / kill ... http://stackoverflow.com/questions/35093869
  - make `rake bump` release for multiple targets and commit all changes
+ - add `--signal` option
+ - make percent a float
+ - add `--restart` option to not kill but restart
