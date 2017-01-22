@@ -1,8 +1,9 @@
 extern crate getopts;
+extern crate regex;
 use std::fs::File;
 use std::io::Read;
 
-fn do_work(args: Vec<String>, max: String, used: String) {
+fn do_work(args: Vec<String>, max_path: String, used_path: String) {
     let mut child = std::process::Command::new(&args[0]).
         args(&args[1..]).
         spawn().
@@ -13,10 +14,20 @@ fn do_work(args: Vec<String>, max: String, used: String) {
 
     let memory_watcher = std::thread::spawn(move || {
         loop {
-            std::thread::sleep_ms(1_000);
+            std::thread::sleep(std::time::Duration::new(1, 0));
 
-            read_file(&max);
-            read_file(&used);
+            // used is a single number of bytes
+            let used = parse_int(&read_file(&used_path));
+
+            // max is bytes after hierarchical_memory_limit
+            let max = {
+                let max_text = &capture(&read_file(&max_path), r"hierarchical_memory_limit\s+(\d+)", 1);
+                parse_int(max_text)
+            };
+
+            if used > max {
+
+            }
 
             // TODO: wrap in a method
             match rx.try_recv() {
@@ -42,9 +53,19 @@ fn do_work(args: Vec<String>, max: String, used: String) {
     memory_watcher.join().expect("joining memory_inspector fail");
 }
 
+fn parse_int(string: &String) -> i32 {
+    string.trim().parse().unwrap()
+}
+
+fn capture(string: &String, pattern: &str, index: usize) -> String {
+    let regex = regex::Regex::new(pattern).unwrap();
+    regex.captures(&string).unwrap().get(index).unwrap().as_str().to_string()
+}
+
+// TODO: .expect(&format!("Could not read {}", file));
 fn read_file(path: &String) -> String {
     let mut data = String::new();
-    let mut file = File::open(path).expect("Unable to open file"); // TODO: tell user what file was missing
+    let mut file = File::open(path).expect("Unable to open file");
     file.read_to_string(&mut data).expect("Unable to read string");
     data
 }
