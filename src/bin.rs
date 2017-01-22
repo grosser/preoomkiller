@@ -40,7 +40,7 @@ fn do_work(args: Vec<String>, max_path: String, used_path: String) {
     child.wait().expect("failed to wait");
 
     // tell the watcher to stop
-    let _ = tx.send(());
+    tx.send(()).expect("Unable to send to child");
 
     memory_watcher.join().expect("joining memory_inspector fail");
 }
@@ -72,10 +72,12 @@ fn main() {
     let program = args.remove(0);
 
     let mut opts = getopts::Options::new();
+    opts.parsing_style(getopts::ParsingStyle::StopAtFirstFree);
     opts.optopt("m", "max-memory-file", "set file to read maximum memory from", "PATH");
     opts.optopt("u", "used-memory-file", "set file to read used memory from", "PATH");
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "show version");
+
     let matches = match opts.parse(&args) { // TODO: use unwrap_or_else or expect
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()) }

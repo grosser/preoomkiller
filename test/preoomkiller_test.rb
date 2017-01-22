@@ -43,4 +43,8 @@ describe 'Preoomkiller' do
     time = Benchmark.realtime { preoomkiller("echo 1 2 3").must_equal "1 2 3\n" }
     time.must_be :<, 0.1
   end
+
+  it "can pass arguments to child" do
+    preoomkiller("echo -n 1 2 3").must_equal "1 2 3"
+  end
 end
