@@ -75,7 +75,7 @@ fn read_file(path: &String) -> String {
 }
 
 fn print_usage(program: &str, opts: getopts::Options) {
-    let brief = format!("Usage: {} FILE [options]", program);
+    let brief = format!("Usage: {} [options] args", program);
     print!("{}", opts.usage(&brief));
 }
 

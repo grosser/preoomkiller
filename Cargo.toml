@@ -7,3 +7,7 @@ authors = ["Michael Grosser <michael@grosser.it>"]
 getopts = "*"
 regex = "*"
 libc = "*"
+
+[[bin]]
+name = "preoomkiller"
+path = "src/bin.rs"
