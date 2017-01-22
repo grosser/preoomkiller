@@ -16,33 +16,21 @@ fn do_work(args: Vec<String>, max_path: String, used_path: String) {
 
     let memory_watcher = std::thread::spawn(move || {
         loop {
-            std::thread::sleep(std::time::Duration::new(1, 0));
+            // If the child is done we can stop and do not need to do any checks
+            match rx.recv_timeout(std::time::Duration::new(1, 0)) {
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => { }
+                Ok(_) | Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => { break }
+            }
 
             // used is a single number of bytes
             let used = parse_int(&read_file(&used_path));
 
             // max is bytes after hierarchical_memory_limit
-            let max = {
-                let max_text = &capture(&read_file(&max_path), r"hierarchical_memory_limit\s+(\d+)", 1);
-                parse_int(max_text)
-            };
+            let max = parse_int(&capture(&read_file(&max_path), r"hierarchical_memory_limit\s+(\d+)", 1));
 
             if used > max {
                 unsafe {
                     libc::kill(child_id as i32, libc::SIGTERM);
-                }
-            }
-
-            // TODO: wrap in a method
-            match rx.try_recv() {
-                // Child is done or process failed ... time to stop
-                Ok(_) | Err(std::sync::mpsc::TryRecvError::Disconnected) => {
-                    println!("Terminating.");
-                    break;
-                }
-                // Child is not done ... continue
-                Err(std::sync::mpsc::TryRecvError::Empty) => {
-                    println!("Nothing.");
                 }
             }
         }

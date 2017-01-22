@@ -1,5 +1,6 @@
 require 'bundler/setup'
 require 'maxitest/autorun'
+require 'benchmark'
 
 # build executable we will test
 `cargo build`
@@ -32,5 +33,14 @@ describe 'Preoomkiller' do
       result = preoomkiller option
       result.must_match /\A\d+\.\d+\.\d+\n\z/
     end
+  end
+
+  it "runs simple command without waiting" do
+    preoomkiller("echo 1 2 3").must_equal "1 2 3\n"
+  end
+
+  it "runs simple command without waiting" do
+    time = Benchmark.realtime { preoomkiller("echo 1 2 3").must_equal "1 2 3\n" }
+    time.must_be :<, 0.1
   end
 end

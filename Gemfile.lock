@@ -12,6 +12,3 @@ PLATFORMS
 DEPENDENCIES
   maxitest
   rake
-
-BUNDLED WITH
-   1.13.6
