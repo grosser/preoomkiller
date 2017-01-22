@@ -4,7 +4,7 @@ extern crate regex;
 use std::fs::File;
 use std::io::Read;
 
-fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64) {
+fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64, max_usage_percent: i32) {
     let mut child = std::process::Command::new(&args[0]).
         args(&args[1..]).
         spawn().
@@ -25,15 +25,16 @@ fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64
             // used is a single number of bytes
             let used = parse_int(&read_file(&used_path));
 
-            // max is bytes after hierarchical_memory_limit
-            let max = parse_int(&capture(&read_file(&max_path), r"hierarchical_memory_limit\s+(\d+)", 1));
+            // max is bytes after hierarchical_memory_limit adjusted by what the user deems safe
+            let max_allowed = {
+                let system_max = parse_int(&capture(&read_file(&max_path), r"hierarchical_memory_limit\s+(\d+)", 1));
+                (system_max / 100) * max_usage_percent
+            };
 
-            if used > ((max / 100) * 90) {
-                unsafe {
-                    libc::kill(child_id as i32, libc::SIGTERM);
-                    println!("Terminated by preoomkiller"); // TODO: write to stderr
-                    std::process::exit(1)
-                }
+            if used > max_allowed {
+                unsafe { libc::kill(child_id as i32, libc::SIGTERM); }
+                println!("Terminated by preoomkiller"); // TODO: write to stderr
+                std::process::exit(1)
             }
         }
     });
@@ -78,6 +79,7 @@ fn main() {
     opts.optopt("m", "max-memory-file", "set file to read maximum memory from", "PATH");
     opts.optopt("u", "used-memory-file", "set file to read used memory from", "PATH");
     opts.optopt("i", "interval", "how often to check memory usage", "SECONDS");
+    opts.optopt("p", "percent", "maximum memory usage percent", "PERCENT"); // TODO: float support
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "show version");
 
@@ -118,5 +120,13 @@ fn main() {
         (raw_interval * 1000.0).round() as u64
     };
 
-    do_work(matches.free, max_memory_file, used_memory_file, interval);
+    // Parse max usage percent to integer
+    let max_usage_percent:i32 = matches.opt_str("percent").unwrap_or_else(|| "90".to_string()).parse().unwrap();
+    if max_usage_percent >= 100 {
+        // TODO: stderr ... and wrap into an `abort` function
+        println!("Using >= 100 percent of memory will never happen since the process would already be OOM");
+        std::process::exit(1)
+    }
+
+    do_work(matches.free, max_memory_file, used_memory_file, interval, max_usage_percent);
 }

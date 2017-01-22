@@ -37,6 +37,12 @@ describe 'Preoomkiller' do
     end
   end
 
+  it "complains when trying to use 100 percent memory" do
+    preoomkiller("-p 100 echo 1 2 3", success: false).must_equal(
+      "Using >= 100 percent of memory will never happen since the process would already be OOM\n"
+    )
+  end
+
   it "runs simple command without waiting" do
     preoomkiller("echo 1 2 3").must_equal "1 2 3\n"
   end
@@ -52,9 +58,13 @@ describe 'Preoomkiller' do
 
   it "kills child quickly when it is above memory allowance" do
     time = Benchmark.realtime do
-      preoomkiller("#{fake_memory_files} -i 0.1 sleep 1", success: false).must_equal "Terminated by preoomkiller\n"
+      preoomkiller("#{fake_memory_files} -i 0.1 sleep 0.2", success: false).must_equal "Terminated by preoomkiller\n"
     end
     time.must_be :<, 0.2
     time.must_be :>=, 0.1
+  end
+
+  it "does not kill child when it has enough memory left" do
+    preoomkiller("#{fake_memory_files} -i 0.1 -p 99 sleep 0.2").must_equal ""
   end
 end
