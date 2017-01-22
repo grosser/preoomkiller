@@ -13,8 +13,10 @@ describe 'Preoomkiller' do
   end
 
   def preoomkiller(command, **args)
-    sh "target/debug/preoomkiller #{command}", **args
+    sh "target/debug/preoomkiller #{command} 2>&1", **args
   end
+
+  let(:fake_memory_files){ "-m test/fixtures/max.txt -u test/fixtures/used.txt" }
 
   it "shows usage when run without arguments" do
     result = preoomkiller "", success: false
@@ -46,5 +48,13 @@ describe 'Preoomkiller' do
 
   it "can pass arguments to child" do
     preoomkiller("echo -n 1 2 3").must_equal "1 2 3"
+  end
+
+  it "kills child quickly when it is above memory allowance" do
+    time = Benchmark.realtime do
+      preoomkiller("#{fake_memory_files} -i 0.1 sleep 1", success: false).must_equal "Terminated by preoomkiller\n"
+    end
+    time.must_be :<, 0.2
+    time.must_be :>=, 0.1
   end
 end

@@ -4,7 +4,7 @@ extern crate regex;
 use std::fs::File;
 use std::io::Read;
 
-fn do_work(args: Vec<String>, max_path: String, used_path: String) {
+fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64) {
     let mut child = std::process::Command::new(&args[0]).
         args(&args[1..]).
         spawn().
@@ -17,7 +17,7 @@ fn do_work(args: Vec<String>, max_path: String, used_path: String) {
     let memory_watcher = std::thread::spawn(move || {
         loop {
             // If the child is done we can stop and do not need to do any checks
-            match rx.recv_timeout(std::time::Duration::new(1, 0)) {
+            match rx.recv_timeout(std::time::Duration::from_millis(interval)) {
                 Err(std::sync::mpsc::RecvTimeoutError::Timeout) => { }
                 Ok(_) | Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => { break }
             }
@@ -28,9 +28,11 @@ fn do_work(args: Vec<String>, max_path: String, used_path: String) {
             // max is bytes after hierarchical_memory_limit
             let max = parse_int(&capture(&read_file(&max_path), r"hierarchical_memory_limit\s+(\d+)", 1));
 
-            if used > max {
+            if used > ((max / 100) * 90) {
                 unsafe {
                     libc::kill(child_id as i32, libc::SIGTERM);
+                    println!("Terminated by preoomkiller"); // TODO: write to stderr
+                    std::process::exit(1)
                 }
             }
         }
@@ -75,6 +77,7 @@ fn main() {
     opts.parsing_style(getopts::ParsingStyle::StopAtFirstFree);
     opts.optopt("m", "max-memory-file", "set file to read maximum memory from", "PATH");
     opts.optopt("u", "used-memory-file", "set file to read used memory from", "PATH");
+    opts.optopt("i", "interval", "how often to check memory usage", "SECONDS");
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "show version");
 
@@ -109,5 +112,11 @@ fn main() {
     let used_memory_file = matches.opt_str("used-memory-file").
         unwrap_or_else(|| "/sys/fs/cgroup/memory/memory.usage_in_bytes".to_string());
 
-    do_work(matches.free, max_memory_file, used_memory_file);
+    // Parse interval to milliseconds
+    let interval = {
+        let raw_interval:f64 = matches.opt_str("interval").unwrap_or_else(|| "1".to_string()).parse().unwrap();
+        (raw_interval * 1000.0).round() as u64
+    };
+
+    do_work(matches.free, max_memory_file, used_memory_file, interval);
 }
