@@ -42,8 +42,9 @@ Options:
  - take `target/release/preoomkiller` binary
 
 ### TODO
+ - kill child when process is killed (already has a failing test)
  - find safe way of doing wait / kill ... http://stackoverflow.com/questions/35093869
  - make `rake bump` release for multiple targets and commit all changes
- - add `--signal` option
+ - add `--signal` option ... support numbers and ideally `USR1` etc words
  - make percent a float
- - add `--restart` option to not kill but restart
+ - add `--restart` option to not kill but restart ... maybe don't since this is tricky / needs a limit

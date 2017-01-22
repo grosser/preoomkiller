@@ -13,9 +13,10 @@ describe 'Preoomkiller' do
   end
 
   def preoomkiller(command, **args)
-    sh "target/debug/preoomkiller #{command} 2>&1", **args
+    sh "#{executable} #{command} 2>&1", **args
   end
 
+  let(:executable) { "target/debug/preoomkiller" }
   let(:fake_memory_files){ "-m test/fixtures/max.txt -u test/fixtures/used.txt" }
 
   it "shows usage when run without arguments" do
@@ -66,5 +67,19 @@ describe 'Preoomkiller' do
 
   it "does not kill child when it has enough memory left" do
     preoomkiller("#{fake_memory_files} -i 0.1 -p 99 sleep 0.2").must_equal ""
+  end
+
+  xit "kills child when it gets killed itself" do
+    Thread.new { preoomkiller("#{fake_memory_files} -i 0.1 -p 99 sleep 5").must_equal "" }
+    sleep 0.1 # let it spin up
+
+    # kill running process
+    running = `ps -ef | grep #{executable} | grep -v grep | grep -v 'sh -c'`
+    running.count("\n").must_equal 1
+    pid = running.split(' ')[1] || raise("No pid found")
+    Process.kill(:TERM, Integer(pid))
+
+    # check if the child is dead
+    `ps -ef | grep sleep | grep -v grep`.must_equal ""
   end
 end
