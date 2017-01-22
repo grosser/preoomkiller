@@ -4,6 +4,28 @@ Written in Rust to consume minimal resources.
 
 Tested with Ruby to have readable / expressive tests.
 
+Version: 0.0.1
+
+### Usage
+
+<!-- Updated by rake bump:patch -->
+```
+Usage: target/debug/preoomkiller [options] args
+
+Options:
+    -m, --max-memory-file PATH
+                        set file to read maximum memory from
+    -u, --used-memory-file PATH
+                        set file to read used memory from
+    -i, --interval SECONDS
+                        how often to check memory usage
+    -p, --percent PERCENT
+                        maximum memory usage percent
+    -h, --help          print this help menu
+    -v, --version       show version
+```
+<!-- Updated by rake bump:patch -->
+
 ### Build
  - [install rust](https://www.rust-lang.org/en-US/install.html)
  - `cargo build`

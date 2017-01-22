@@ -1,7 +1,7 @@
 require 'bundler/setup'
 
 class Bumper
-  FILES = ["Cargo.toml", "src/bin.rs"]
+  FILES = ["Cargo.toml", "src/bin.rs", "Readme.md"]
 
   def initialize(position)
     @position = position
@@ -10,26 +10,42 @@ class Bumper
   def bump
     abort "Working directory not clean" unless system("git diff-index --quiet HEAD --")
     new_version = bump_files
-    command = "git commit -a -m 'v#{new_version}' && git tag v#{new_version}"
-    abort "Failed to bump" unless system(command)
-    puts "Comitted v#{new_version}"
+    update_usage_in_readme
+    commit new_version
   end
 
   private
 
   def bump_files
-    version = nil
-    FILES.each do |f|
-      content = File.read(f)
-      content.sub!(/"(\d+)\.(\d+)\.(\d+)"/) do
-        version = [$1, $2, $3]
-        version[@position] = Integer(version[@position]) + 1
-        version = version.join(".")
-        "\"#{version}\""
-      end || abort("Version not found in #{f}")
-      File.write(f, content)
+    File.read(FILES.first) =~ /"(\d+)\.(\d+)\.(\d+)"/ || raise("Version not found in #{FILES.first}")
+    old_version = [$1, $2, $3]
+    new_version = old_version.dup
+    new_version[@position] = Integer(old_version[@position]) + 1
+    new_version = new_version.join(".")
+    old_version = old_version.join(".")
+
+    FILES.each do |file|
+      content = File.read(file).sub!(old_version, new_version) || abort("Version not found in #{file}")
+      File.write(file, content)
     end
-    version
+
+    new_version
+  end
+
+  def update_usage_in_readme
+    file = "Readme.md"
+    marker = "<!-- Updated by rake bump:patch -->\n"
+    marker_rex = /#{Regexp.escape(marker)}.*#{Regexp.escape(marker)}/m
+    usage = `cargo run -- -h`
+    usage_with_marker = "#{marker}```\n#{usage}```\n#{marker}"
+    raise "Unable to get usage" unless $?.success?
+    File.write(file, File.read(file).sub!(marker_rex, usage_with_marker) || raise("Unable to find #{marker.strip} in #{file}"))
+  end
+
+  def commit(new_version)
+    command = "git commit -a -m 'v#{new_version}' && git tag v#{new_version}"
+    abort "Failed to bump" unless system(command)
+    puts "Comitted v#{new_version}"
   end
 end
 
