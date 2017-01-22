@@ -2,7 +2,7 @@ Softly kills your process with SIGTERM before it runs out of memory.
 
 Written in Rust to consume minimal resources.
 
-Tested with Ruby to have readable / expressive tests.
+Download the binary you need from target/*your-arch*
 
 Version: 0.0.1
 
@@ -31,6 +31,9 @@ Options:
  - `cargo build`
 
 ### Test
+
+Tested with Ruby to have readable / expressive tests.
+
  - Build
  - `gem install bundler` ... needs [ruby](https://www.ruby-lang.org/en/) installed
  - `bundle`
@@ -42,6 +45,7 @@ Options:
  - take `target/release/preoomkiller` binary
 
 ### TODO
+ - travis
  - kill child when process is killed (already has a failing test)
  - find safe way of doing wait / kill ... http://stackoverflow.com/questions/35093869
  - make `rake bump` release for multiple targets and commit all changes

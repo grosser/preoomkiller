@@ -2,19 +2,31 @@ require 'bundler/setup'
 
 class Bumper
   FILES = ["Cargo.toml", "src/bin.rs", "Readme.md"]
+  TARGETS = [
+    'x86_64-apple-darwin',
+    # 'i686-unknown-linux-gnu' # TODO: fails :/
+  ]
 
   def initialize(position)
     @position = position
   end
 
   def bump
-    abort "Working directory not clean" unless system("git diff-index --quiet HEAD --")
-    new_version = bump_files
-    update_usage_in_readme
-    commit new_version
+    # abort "Working directory not clean" unless system("git diff-index --quiet HEAD --")
+    # new_version = bump_files
+    # update_usage_in_readme
+    # commit new_version
+    compile
   end
 
   private
+
+  def sh(command, success: true)
+    puts command
+    result = `#{command}`
+    raise "FAILED\n#{command}\n#{result}" if $?.success? != success
+    result
+  end
 
   def bump_files
     File.read(FILES.first) =~ /"(\d+)\.(\d+)\.(\d+)"/ || raise("Version not found in #{FILES.first}")
@@ -36,16 +48,21 @@ class Bumper
     file = "Readme.md"
     marker = "<!-- Updated by rake bump:patch -->\n"
     marker_rex = /#{Regexp.escape(marker)}.*#{Regexp.escape(marker)}/m
-    usage = `cargo run -- -h`
+    usage = sh "cargo run -- -h"
     usage_with_marker = "#{marker}```\n#{usage}```\n#{marker}"
-    raise "Unable to get usage" unless $?.success?
     File.write(file, File.read(file).sub!(marker_rex, usage_with_marker) || raise("Unable to find #{marker.strip} in #{file}"))
   end
 
   def commit(new_version)
-    command = "git commit -a -m 'v#{new_version}'"
-    abort "Failed to bump" unless system(command)
+    sh  "git commit -a -m 'v#{new_version}'"
     puts "Comitted v#{new_version}"
+  end
+
+  # if this fails try rustup target add #{tripple}
+  def compile
+    TARGETS.each do |tripple|
+      sh  "xargo build --release --target #{tripple}"
+    end
   end
 end
 
