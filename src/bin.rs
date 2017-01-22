@@ -87,21 +87,28 @@ fn main() {
     opts.optopt("m", "max-memory-file", "set file to read maximum memory from", "PATH");
     opts.optopt("u", "used-memory-file", "set file to read used memory from", "PATH");
     opts.optflag("h", "help", "print this help menu");
+    opts.optflag("v", "version", "show version");
     let matches = match opts.parse(&args) { // TODO: use unwrap_or_else or expect
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()) }
     };
 
-    // show usage when run without argv
-    if matches.free.is_empty() {
+    // User wants help
+    if matches.opt_present("h") {
         print_usage(&program, opts);
         return
     }
 
     // User wants help
-    if matches.opt_present("h") {
-        print_usage(&program, opts);
+    if matches.opt_present("v") {
+        println!("0.0.1"); // modified via `rake bump:patch`
         return
+    }
+
+    // show usage when run without argv
+    if matches.free.is_empty() {
+        print_usage(&program, opts);
+        std::process::exit(1)
     }
 
     // Parse max-memory file location or use default

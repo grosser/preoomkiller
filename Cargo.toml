@@ -1,6 +1,6 @@
 [package]
 name = "preoomkiller"
-version = "0.0.1"
+version = "0.0.1" # modified via `rake bump:patch`
 authors = ["Michael Grosser <michael@grosser.it>"]
 
 [dependencies]
