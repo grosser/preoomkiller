@@ -1,5 +1,8 @@
 Softly kills your process with SIGTERM before it runs out of memory.
 
+ - Made for processes that run inside docker.
+ - defaults to `/sys/fs/cgroup/memory/memory.usage_in_bytes` and `/sys/fs/cgroup/memory/memory.stat`
+
 Written in Rust to consume minimal resources.
 
 Download the binary you need from target/*your-arch*
@@ -45,6 +48,7 @@ Tested with Ruby to have readable / expressive tests.
  - take `target/release/preoomkiller` binary
 
 ### TODO
+ - release to cargo
  - travis
  - kill child when process is killed (already has a failing test)
  - find safe way of doing wait / kill ... http://stackoverflow.com/questions/35093869
