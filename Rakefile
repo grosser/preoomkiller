@@ -43,7 +43,7 @@ class Bumper
   end
 
   def commit(new_version)
-    command = "git commit -a -m 'v#{new_version}' && git tag v#{new_version}"
+    command = "git commit -a -m 'v#{new_version}'"
     abort "Failed to bump" unless system(command)
     puts "Comitted v#{new_version}"
   end
