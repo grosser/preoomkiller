@@ -6,3 +6,4 @@ authors = ["Michael Grosser <michael@grosser.it>"]
 [dependencies]
 getopts = "*"
 regex = "*"
+libc = "*"

@@ -1,3 +1,4 @@
+extern crate libc;
 extern crate getopts;
 extern crate regex;
 use std::fs::File;
@@ -8,6 +9,7 @@ fn do_work(args: Vec<String>, max_path: String, used_path: String) {
         args(&args[1..]).
         spawn().
         expect("Failed to start");
+    let child_id = child.id();
 
     // open channel so we can communicate with our watcher
     let (tx, rx) = std::sync::mpsc::channel();
@@ -26,7 +28,9 @@ fn do_work(args: Vec<String>, max_path: String, used_path: String) {
             };
 
             if used > max {
-
+                unsafe {
+                    libc::kill(child_id as i32, libc::SIGTERM);
+                }
             }
 
             // TODO: wrap in a method
