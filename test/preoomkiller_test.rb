@@ -45,16 +45,24 @@ describe 'Preoomkiller' do
   end
 
   it "runs simple command without waiting" do
-    preoomkiller("echo 1 2 3").must_equal "1 2 3\n"
+    preoomkiller("#{fake_memory_files} echo 1 2 3").must_equal "1 2 3\n"
   end
 
   it "runs simple command without waiting" do
-    time = Benchmark.realtime { preoomkiller("echo 1 2 3").must_equal "1 2 3\n" }
+    time = Benchmark.realtime { preoomkiller("#{fake_memory_files} echo 1 2 3").must_equal "1 2 3\n" }
     time.must_be :<, 0.1
   end
 
   it "can pass arguments to child" do
-    preoomkiller("echo -n 1 2 3").must_equal "1 2 3"
+    preoomkiller("#{fake_memory_files} echo -n 1 2 3").must_equal "1 2 3"
+  end
+
+  it "points to the missing used file when failing" do
+    preoomkiller("-i 0 echo 1", success: false).must_equal "Could not open /sys/fs/cgroup/memory/memory.usage_in_bytes\n"
+  end
+
+  it "points to the missing max file when failing" do
+    preoomkiller("-u test/fixtures/used.txt -i 0 echo 1", success: false).must_equal "Could not open /sys/fs/cgroup/memory/memory.stat\n"
   end
 
   it "kills child quickly when it is above memory allowance" do

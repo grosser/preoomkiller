@@ -3,8 +3,21 @@ extern crate getopts;
 extern crate regex;
 use std::fs::File;
 use std::io::Read;
+use std::io::Write;
+
+macro_rules! abort(
+    ($($arg:tt)*) => { {
+        writeln!(&mut std::io::stderr(), $($arg)*).expect("failed printing to stderr");
+        std::process::exit(1)
+    } }
+);
 
 fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64, max_usage_percent: i32) {
+    // read both files once to make sure they exist before we start our child
+    read_file(&used_path);
+    read_file(&max_path);
+
+    // start monitored child process
     let mut child = std::process::Command::new(&args[0]).
         args(&args[1..]).
         spawn().
@@ -57,10 +70,9 @@ fn capture(string: &String, pattern: &str, index: usize) -> String {
     regex.captures(&string).unwrap().get(index).unwrap().as_str().to_string()
 }
 
-// TODO: .expect(&format!("Could not read {}", file));
 fn read_file(path: &String) -> String {
     let mut data = String::new();
-    let mut file = File::open(path).expect("Unable to open file");
+    let mut file = File::open(path).unwrap_or_else(|_| { abort!("Could not open {}", path) });
     file.read_to_string(&mut data).expect("Unable to read string");
     data
 }
@@ -123,9 +135,7 @@ fn main() {
     // Parse max usage percent to integer
     let max_usage_percent:i32 = matches.opt_str("percent").unwrap_or_else(|| "90".to_string()).parse().unwrap();
     if max_usage_percent >= 100 {
-        // TODO: stderr ... and wrap into an `abort` function
-        println!("Using >= 100 percent of memory will never happen since the process would already be OOM");
-        std::process::exit(1)
+        abort!("Using >= 100 percent of memory will never happen since the process would already be OOM")
     }
 
     do_work(matches.free, max_memory_file, used_memory_file, interval, max_usage_percent);
