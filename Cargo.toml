@@ -20,7 +20,3 @@ readme = "Readme.md"
 getopts = "*"
 regex = "*"
 libc = "*"
-
-[[bin]]
-name = "preoomkiller"
-path = "src/bin.rs"
