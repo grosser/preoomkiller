@@ -17,6 +17,6 @@ readme = "Readme.md"
 
 
 [dependencies]
-getopts = "*"
-regex = "*"
-libc = "*"
+getopts = "0.2"
+regex = "0.2"
+libc = "0.2"
