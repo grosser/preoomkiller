@@ -44,8 +44,7 @@ Tested with Ruby to have readable / expressive tests.
  
 ### Release
  - `bundle exec rake bump:patch`
- - `cargo build --release`
- - take `target/release/preoomkiller` binary
+ - `bundle exec rake release`
 
 ### TODO
  - remove `regex` dependency by splitting string and searching manually

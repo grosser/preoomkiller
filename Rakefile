@@ -1,23 +1,23 @@
 require 'bundler/setup'
 
 class Bumper
-  FILES = ["Cargo.toml", "src/bin.rs", "Readme.md"]
+  FILES = ["Cargo.toml", "src/main.rs", "Readme.md"]
+  VERSION_REX = /"((\d+)\.(\d+)\.(\d+))"/
   TARGETS = [
     'x86_64-apple-darwin',
     # 'i686-unknown-linux-gnu' # TODO: fails :/
   ]
-  VERSION_REX = /"((\d+)\.(\d+)\.(\d+))"/
 
   def initialize(position)
     @position = position
   end
 
   def bump
-    # abort "Working directory not clean" unless system("git diff-index --quiet HEAD --")
-    # new_version = bump_files
-    # update_usage_in_readme
-    # commit new_version
+    abort "Working directory not clean" unless system("git diff-index --quiet HEAD --")
+    new_version = bump_files
+    update_usage_in_readme
     compile
+    commit new_version
   end
 
   private

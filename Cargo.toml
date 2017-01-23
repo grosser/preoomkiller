@@ -13,7 +13,6 @@ exclude = [
     "test/*",
     "target/*"
 ]
-readme = "Readme.md"
 
 [dependencies]
 getopts = "0.2"
