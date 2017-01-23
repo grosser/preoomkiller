@@ -48,7 +48,8 @@ Tested with Ruby to have readable / expressive tests.
  - take `target/release/preoomkiller` binary
 
 ### TODO
- - travis
+ - remove `regex` dependency by splitting string and searching manually
+ - travis + show status on crates.io
  - kill child when process is killed (already has a failing test)
  - find safe way of doing wait / kill ... http://stackoverflow.com/questions/35093869
  - make `rake bump` release for multiple targets and commit all changes
