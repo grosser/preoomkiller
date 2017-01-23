@@ -5,11 +5,11 @@ Softly kills your process with SIGTERM before it runs out of memory.
 
 Written in Rust to consume minimal resources.
 
-Download the binary you need from target/*your-arch*
-
 Version: 0.0.1
 
 ### Usage
+
+Download the binary you need from target/*your-arch* or `cargo install preoomkiller`.
 
 <!-- Updated by rake bump:patch -->
 ```
@@ -48,7 +48,6 @@ Tested with Ruby to have readable / expressive tests.
  - take `target/release/preoomkiller` binary
 
 ### TODO
- - release to cargo
  - travis
  - kill child when process is killed (already has a failing test)
  - find safe way of doing wait / kill ... http://stackoverflow.com/questions/35093869

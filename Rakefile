@@ -76,3 +76,8 @@ namespace :bump do
     task(name) { Bumper.new(index).bump }
   end
 end
+
+desc "Release new version"
+task :release do
+  sh "cargo package"
+end
