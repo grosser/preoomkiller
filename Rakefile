@@ -6,6 +6,7 @@ class Bumper
     'x86_64-apple-darwin',
     # 'i686-unknown-linux-gnu' # TODO: fails :/
   ]
+  VERSION_REX = /"((\d+)\.(\d+)\.(\d+))"/
 
   def initialize(position)
     @position = position
@@ -29,8 +30,8 @@ class Bumper
   end
 
   def bump_files
-    File.read(FILES.first) =~ /"(\d+)\.(\d+)\.(\d+)"/ || raise("Version not found in #{FILES.first}")
-    old_version = [$1, $2, $3]
+    File.read(FILES.first) =~ VERSION_REX || raise("Version not found in #{FILES.first}")
+    old_version = [$2, $3, $4]
     new_version = old_version.dup
     new_version[@position] = Integer(old_version[@position]) + 1
     new_version = new_version.join(".")
@@ -79,5 +80,14 @@ end
 
 desc "Release new version"
 task :release do
-  sh "cargo package"
+  version = File.read('Cargo.toml')[Bumper::VERSION_REX, 1]
+  version = "v#{version}"
+  sh "git tag #{version}"
+  begin
+    sh "cargo publish"
+  rescue
+    sh "git tag -d #{version}"
+  else
+    sh "git push --tags"
+  end
 end
