@@ -12,7 +12,7 @@ macro_rules! abort(
     } }
 );
 
-fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64, max_usage_percent: i32) {
+fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64, max_usage_percent: u64) {
     // read both files once to make sure they exist before we start our child
     read_file(&used_path);
     read_file(&max_path);
@@ -61,8 +61,8 @@ fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64
     memory_watcher.join().expect("joining memory_inspector fail");
 }
 
-fn parse_int(string: &String) -> i32 {
-    string.trim().parse().unwrap()
+fn parse_int(string: &String) -> u64 {
+    string.trim().parse::<u64>().unwrap()
 }
 
 fn capture(string: &String, pattern: &str, index: usize) -> String {
@@ -133,7 +133,7 @@ fn main() {
     };
 
     // Parse max usage percent to integer
-    let max_usage_percent:i32 = matches.opt_str("percent").unwrap_or_else(|| "90".to_string()).parse().unwrap();
+    let max_usage_percent:u64 = matches.opt_str("percent").unwrap_or_else(|| "90".to_string()).parse::<u64>().unwrap();
     if max_usage_percent >= 100 {
         abort!("Using >= 100 percent of memory will never happen since the process would already be OOM")
     }
