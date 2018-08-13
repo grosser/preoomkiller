@@ -10,6 +10,9 @@ include = [
     "src/main.rs",
     "Readme.md"
 ]
+exclude = [
+    "vendor"
+]
 
 [dependencies]
 getopts = "0.2"
