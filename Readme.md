@@ -17,13 +17,15 @@ Usage: target/debug/preoomkiller [options] args
 
 Options:
     -m, --max-memory-file PATH
-                        set file to read maximum memory from
+                        set file to read maximum memory from, default:
+                        /sys/fs/cgroup/memory/memory.stat
     -u, --used-memory-file PATH
-                        set file to read used memory from
+                        set file to read used memory from, default:
+                        /sys/fs/cgroup/memory/memory.usage_in_bytes
     -i, --interval SECONDS
-                        how often to check memory usage
+                        how often to check memory usage, default: 1
     -p, --percent PERCENT
-                        maximum memory usage percent
+                        maximum memory usage percent, default: 90
     -h, --help          print this help menu
     -v, --version       show version
 ```

@@ -88,10 +88,10 @@ fn main() {
 
     let mut opts = getopts::Options::new();
     opts.parsing_style(getopts::ParsingStyle::StopAtFirstFree);
-    opts.optopt("m", "max-memory-file", "set file to read maximum memory from", "PATH");
-    opts.optopt("u", "used-memory-file", "set file to read used memory from", "PATH");
-    opts.optopt("i", "interval", "how often to check memory usage", "SECONDS");
-    opts.optopt("p", "percent", "maximum memory usage percent", "PERCENT"); // TODO: float support
+    opts.optopt("m", "max-memory-file", "set file to read maximum memory from, default: /sys/fs/cgroup/memory/memory.stat", "PATH");
+    opts.optopt("u", "used-memory-file", "set file to read used memory from, default: /sys/fs/cgroup/memory/memory.usage_in_bytes", "PATH");
+    opts.optopt("i", "interval", "how often to check memory usage, default: 1", "SECONDS");
+    opts.optopt("p", "percent", "maximum memory usage percent, default: 90", "PERCENT"); // TODO: float support
     opts.optflag("h", "help", "print this help menu");
     opts.optflag("v", "version", "show version");
 
