@@ -84,7 +84,7 @@ task :release do
   version = "v#{version}"
   sh "git tag #{version}"
   begin
-    sh "cargo publish"
+    sh "cargo publish --allow-dirty" # TODO: remove --allow-dirty once .gitignore is respected
   rescue
     sh "git tag -d #{version}"
   else
