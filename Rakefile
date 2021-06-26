@@ -62,7 +62,7 @@ class Bumper
   # if this fails try rustup target add #{tripple}
   def compile
     TARGETS.each do |tripple|
-      sh  "xargo build --release --target #{tripple}"
+      sh  "cargo build --release --target #{tripple}"
     end
   end
 end

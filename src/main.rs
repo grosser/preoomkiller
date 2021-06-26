@@ -97,7 +97,7 @@ fn main() {
 
     let matches = match opts.parse(&args) { // TODO: use unwrap_or_else or expect
         Ok(m) => { m }
-        Err(f) => { panic!(f.to_string()) }
+        Err(f) => { panic!("{}", f.to_string()) }
     };
 
     // User wants help
@@ -108,7 +108,7 @@ fn main() {
 
     // User wants help
     if matches.opt_present("v") {
-        println!("0.0.2"); // modified via `rake bump:patch`
+        println!("0.0.3"); // modified via `rake bump:patch`
         return
     }
 

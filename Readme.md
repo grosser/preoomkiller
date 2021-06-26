@@ -5,7 +5,7 @@ Softly kills your process with SIGTERM before it runs out of memory.
 
 Written in Rust to consume minimal resources.
 
-Version: 0.0.2
+Version: 0.0.3
 
 ### Usage
 
