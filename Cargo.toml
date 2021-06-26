@@ -1,7 +1,7 @@
 [package]
 name = "preoomkiller"
 description = "Softly kills your process with SIGTERM before it runs out of memory."
-version = "0.0.3" # modified via `rake bump:patch`
+version = "0.0.4" # modified via `rake bump:patch`
 authors = ["Michael Grosser <michael@grosser.it>"]
 license = "MIT"
 homepage = "https://github.com/grosser/preoomkiller"

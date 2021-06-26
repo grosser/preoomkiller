@@ -108,7 +108,7 @@ fn main() {
 
     // User wants help
     if matches.opt_present("v") {
-        println!("0.0.3"); // modified via `rake bump:patch`
+        println!("0.0.4"); // modified via `rake bump:patch`
         return
     }
 
