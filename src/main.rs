@@ -46,7 +46,7 @@ fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64
 
             if used > max_allowed {
                 unsafe { libc::kill(child_id as i32, libc::SIGTERM); }
-                println!("Terminated by preoomkiller"); // TODO: write to stderr
+                eprintln!("Terminated by preoomkiller");
                 std::process::exit(1)
             }
         }
@@ -108,7 +108,7 @@ fn main() {
 
     // User wants help
     if matches.opt_present("v") {
-        println!("0.0.4"); // modified via `rake bump:patch`
+        println!("0.0.5"); // modified via `rake bump:patch`
         return
     }
 
