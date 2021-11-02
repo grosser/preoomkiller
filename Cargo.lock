@@ -45,6 +45,7 @@ dependencies = [
  "getopts",
  "libc",
  "regex",
+ "signal-hook",
 ]
 
 [[package]]
@@ -67,6 +68,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d707a4fa2637f2dca2ef9fd02225ec7661fe01a53623c1e6515b6916511f7a7"
 dependencies = [
  "ucd-util",
+]
+
+[[package]]
+name = "signal-hook"
+version = "0.3.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c98891d737e271a2954825ef19e46bd16bdb98e2746f2eec4f7a4ef7946efd1"
+dependencies = [
+ "libc",
+ "signal-hook-registry",
+]
+
+[[package]]
+name = "signal-hook-registry"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e51e73328dc4ac0c7ccbda3a494dfa03df1de2f46018127f60c693f2648455b0"
+dependencies = [
+ "libc",
 ]
 
 [[package]]

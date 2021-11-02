@@ -77,8 +77,9 @@ describe 'Preoomkiller' do
     preoomkiller("#{fake_memory_files} -i 0.1 -p 99 sleep 0.2").must_equal ""
   end
 
-  xit "kills child when it gets killed itself" do
-    Thread.new { preoomkiller("#{fake_memory_files} -i 0.1 -p 99 sleep 5").must_equal "" }
+  it "kills child when it gets killed itself by SIGTERM" do
+    result = nil
+    thr = Thread.new { result = preoomkiller("#{fake_memory_files} -i 0.1 -p 99 ./test/fixtures/signal_printer.sh", success: false) }
     sleep 0.1 # let it spin up
 
     # kill running process
@@ -87,7 +88,28 @@ describe 'Preoomkiller' do
     pid = running.split(' ')[1] || raise("No pid found")
     Process.kill(:TERM, Integer(pid))
 
+    thr.join
+    result.must_equal "Waiting for signals\nTerminated by forwarded signal\nSIGTERM\n"
+
     # check if the child is dead
-    `ps -ef | grep sleep | grep -v grep`.must_equal ""
+    `ps -ef | grep signal_printer | grep -v grep`.must_equal ""
+  end
+
+  it "kills child when it gets killed itself by SIGINT" do
+    result = nil
+    thr = Thread.new { result = preoomkiller("#{fake_memory_files} -i 0.1 -p 99 ./test/fixtures/signal_printer.sh", success: false) }
+    sleep 0.1 # let it spin up
+
+    # kill running process
+    running = `ps -ef | grep #{executable} | grep -v grep | grep -v 'sh -c'`
+    running.count("\n").must_equal 1
+    pid = running.split(' ')[1] || raise("No pid found")
+    Process.kill(:INT, Integer(pid))
+
+    thr.join
+    result.must_equal "Waiting for signals\nTerminated by forwarded signal\nSIGINT\n"
+
+    # check if the child is dead
+    `ps -ef | grep signal_printer | grep -v grep`.must_equal ""
   end
 end
