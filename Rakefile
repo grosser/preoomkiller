@@ -34,6 +34,8 @@ class Bumper
     old_version = [$2, $3, $4]
     new_version = old_version.dup
     new_version[@position] = Integer(old_version[@position]) + 1
+    new_version[@position+1] = 0 if new_version[@position+1]
+    new_version[@position+2] = 0 if new_version[@position+2]
     new_version = new_version.join(".")
     old_version = old_version.join(".")
 
