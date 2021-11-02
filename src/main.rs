@@ -120,7 +120,7 @@ fn main() {
 
     // User wants help
     if matches.opt_present("v") {
-        println!("0.0.5"); // modified via `rake bump:patch`
+        println!("0.1.0"); // modified via `rake bump:patch`
         return
     }
 

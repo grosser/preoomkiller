@@ -5,7 +5,7 @@ Softly kills your process with SIGTERM before it runs out of memory.
 
 Written in Rust to consume minimal resources.
 
-Version: 0.0.5
+Version: 0.1.0
 
 ### Usage
 
@@ -43,7 +43,7 @@ Tested with Ruby to have readable / expressive tests.
  - `gem install bundler` ... needs [ruby](https://www.ruby-lang.org/en/) installed
  - `bundle`
  - `bundle exec rake`
- 
+
 ### Release
  - `bundle exec rake bump:patch`
  - `bundle exec rake release`
