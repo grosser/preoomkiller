@@ -1,9 +1,11 @@
 extern crate libc;
 extern crate getopts;
 extern crate regex;
+extern crate signal_hook;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
+use signal_hook::{iterator, consts::{SIGINT, SIGTERM, SIGQUIT}};
 
 macro_rules! abort(
     ($($arg:tt)*) => { {
@@ -49,6 +51,16 @@ fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64
                 eprintln!("Terminated by preoomkiller");
                 std::process::exit(1)
             }
+        }
+    });
+
+    let _signal_watcher = std::thread::spawn(move || {
+        let mut forward_signals = iterator::Signals::new(&[SIGINT, SIGTERM, SIGQUIT]).expect("Unable to watch for signals");
+
+        for sig in forward_signals.forever() {
+            unsafe { libc::kill(child_id as i32, sig); }
+            eprintln!("Terminated by forwarded signal");
+            std::process::exit(1);
         }
     });
 

@@ -18,3 +18,4 @@ exclude = [
 getopts = "0.2"
 regex = "0.2"
 libc = "0.2"
+signal-hook = "0.3.10"
