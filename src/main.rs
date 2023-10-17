@@ -7,6 +7,9 @@ use std::io::Read;
 use std::io::Write;
 use signal_hook::{iterator, consts::{SIGINT, SIGTERM, SIGQUIT}};
 
+static CGROUPS1_FILE: &str = "/sys/fs/cgroup/memory/memory.usage_in_bytes";
+static CGROUPS2_FILE: &str = "/sys/fs/cgroup/memory.current";
+
 macro_rules! abort(
     ($($arg:tt)*) => { {
         writeln!(&mut std::io::stderr(), $($arg)*).expect("failed printing to stderr");
@@ -15,8 +18,12 @@ macro_rules! abort(
 );
 
 fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64, max_usage_percent: u64) {
+    let mut used_path_resolved: String = used_path.clone();
+    if used_path_resolved.is_empty() {
+        used_path_resolved = default_used_memory_file();
+    }
     // read both files once to make sure they exist before we start our child
-    read_file(&used_path);
+    read_file(&used_path_resolved);
     read_file(&max_path);
 
     // start monitored child process
@@ -38,7 +45,7 @@ fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64
             }
 
             // used is a single number of bytes
-            let used = parse_int(&read_file(&used_path));
+            let used = parse_int(&read_file(&used_path_resolved));
 
             // max is bytes after hierarchical_memory_limit adjusted by what the user deems safe
             let max_allowed = {
@@ -94,6 +101,15 @@ fn print_usage(program: &str, opts: getopts::Options) {
     print!("{}", opts.usage(&brief));
 }
 
+fn default_used_memory_file() -> String {
+    if std::path::Path::new(&CGROUPS2_FILE).exists() {
+        return CGROUPS2_FILE.to_string();
+    } else if std::path::Path::new(&CGROUPS1_FILE).exists() {
+        return CGROUPS1_FILE.to_string();
+    } else {
+        abort!("Could not open /sys/fs/cgroup/memory.current or /sys/fs/cgroup/memory/memory.usage_in_bytes");
+    }
+}
 fn main() {
     let mut args: Vec<String> = std::env::args().collect();
     let program = args.remove(0);
@@ -101,7 +117,7 @@ fn main() {
     let mut opts = getopts::Options::new();
     opts.parsing_style(getopts::ParsingStyle::StopAtFirstFree);
     opts.optopt("m", "max-memory-file", "set file to read maximum memory from, default: /sys/fs/cgroup/memory/memory.stat", "PATH");
-    opts.optopt("u", "used-memory-file", "set file to read used memory from, default: /sys/fs/cgroup/memory/memory.usage_in_bytes", "PATH");
+    opts.optopt("u", "used-memory-file", "set file to read used memory from, default: /sys/fs/cgroup/memory.current or /sys/fs/cgroup/memory/memory.usage_in_bytes", "PATH"); // cgroups2 vs cgroups1
     opts.optopt("i", "interval", "how often to check memory usage, default: 1", "SECONDS");
     opts.optopt("p", "percent", "maximum memory usage percent, default: 90", "PERCENT"); // TODO: float support
     opts.optflag("h", "help", "print this help menu");
@@ -136,7 +152,7 @@ fn main() {
 
     // Parse used-memory file location or use default
     let used_memory_file = matches.opt_str("used-memory-file").
-        unwrap_or_else(|| "/sys/fs/cgroup/memory/memory.usage_in_bytes".to_string());
+        unwrap_or_else(|| "".to_string());
 
     // Parse interval to milliseconds
     let interval = {

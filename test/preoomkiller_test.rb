@@ -58,7 +58,11 @@ describe 'Preoomkiller' do
   end
 
   it "points to the missing used file when failing" do
-    preoomkiller("-i 0 echo 1", success: false).must_equal "Could not open /sys/fs/cgroup/memory/memory.usage_in_bytes\n"
+    preoomkiller("-i 0 echo 1", success: false).must_equal "Could not open /sys/fs/cgroup/memory.current or /sys/fs/cgroup/memory/memory.usage_in_bytes\n"
+  end
+
+  it "points to the missing optional used file when failing" do
+    preoomkiller("-u test/fixtures/doesnt_exist.txt -i 0 echo 1", success: false).must_equal "Could not open test/fixtures/doesnt_exist.txt\n"
   end
 
   it "points to the missing max file when failing" do
