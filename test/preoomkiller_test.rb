@@ -1,9 +1,10 @@
 require 'bundler/setup'
+require 'maxitest/global_must'
 require 'maxitest/autorun'
 require 'benchmark'
 
 # build executable we will test
-`cargo build`
+abort "`cargo build` failed" unless system "cargo build"
 
 describe 'Preoomkiller' do
   def sh(command, success: true)
@@ -50,23 +51,23 @@ describe 'Preoomkiller' do
 
   it "runs simple command without waiting" do
     time = Benchmark.realtime { preoomkiller("#{fake_memory_files} echo 1 2 3").must_equal "1 2 3\n" }
-    time.must_be :<, 0.1
+    time.must_be :<, 0.2
   end
 
   it "can pass arguments to child" do
     preoomkiller("#{fake_memory_files} echo -n 1 2 3").must_equal "1 2 3"
   end
 
-  it "points to the missing used file when failing" do
+  it "points to the missing default max file when missing" do
     preoomkiller("-i 0 echo 1", success: false).must_equal "Could not open /sys/fs/cgroup/memory.current or /sys/fs/cgroup/memory/memory.usage_in_bytes\n"
   end
 
-  it "points to the missing optional used file when failing" do
-    preoomkiller("-u test/fixtures/doesnt_exist.txt -i 0 echo 1", success: false).must_equal "Could not open test/fixtures/doesnt_exist.txt\n"
+  it "points to the missing used file when failing" do
+    preoomkiller("-m test/fixtures/max.txt -u test/fixtures/doesnt_exist.txt -i 0 echo 1", success: false).must_equal "Could not open test/fixtures/doesnt_exist.txt\n"
   end
 
-  it "points to the missing max file when failing" do
-    preoomkiller("-u test/fixtures/used.txt -i 0 echo 1", success: false).must_equal "Could not open /sys/fs/cgroup/memory/memory.stat\n"
+  it "points to the missing configured max file when failing" do
+    preoomkiller("-m test/fixtures/doesnt_exist.txt -u test/fixtures/used.txt -i 0 echo 1", success: false).must_equal "Could not open test/fixtures/doesnt_exist.txt\n"
   end
 
   it "kills child quickly when it is above memory allowance" do

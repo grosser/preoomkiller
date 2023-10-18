@@ -21,7 +21,7 @@ Options:
                         /sys/fs/cgroup/memory/memory.stat
     -u, --used-memory-file PATH
                         set file to read used memory from, default:
-                        /sys/fs/cgroup/memory/memory.usage_in_bytes
+                        /sys/fs/cgroup/memory.current or /sys/fs/cgroup/memory/memory.usage_in_bytes
     -i, --interval SECONDS
                         how often to check memory usage, default: 1
     -p, --percent PERCENT

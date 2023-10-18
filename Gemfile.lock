@@ -1,9 +1,9 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    maxitest (2.4.0)
-      minitest (>= 5.0.0, < 5.11.0)
-    minitest (5.10.1)
+    maxitest (5.3.1)
+      minitest (>= 5.14.0, < 5.20.0)
+    minitest (5.19.0)
     rake (12.0.0)
 
 PLATFORMS
@@ -12,3 +12,6 @@ PLATFORMS
 DEPENDENCIES
   maxitest
   rake
+
+BUNDLED WITH
+   2.4.13
