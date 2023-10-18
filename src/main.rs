@@ -106,6 +106,7 @@ fn default_used_memory_file() -> String {
         abort!("Could not open {} or {}", CGROUPS2_FILE, CGROUPS1_FILE);
     }
 }
+
 fn main() {
     let mut args: Vec<String> = std::env::args().collect();
     let program = args.remove(0);
@@ -148,11 +149,7 @@ fn main() {
 
     // Parse used-memory file location or use default
     let used_memory_file = matches.opt_str("used-memory-file").
-        unwrap_or_else(|| "".to_string());
-    let mut used_path_resolved: String = used_memory_file.clone();
-    if used_path_resolved.is_empty() {
-        used_path_resolved = default_used_memory_file();
-    }
+        unwrap_or_else(|| default_used_memory_file());
 
     // Parse interval to milliseconds
     let interval = {
@@ -166,5 +163,5 @@ fn main() {
         abort!("Using >= 100 percent of memory will never happen since the process would already be OOM")
     }
 
-    do_work(matches.free, max_memory_file, used_path_resolved, interval, max_usage_percent);
+    do_work(matches.free, max_memory_file, used_memory_file, interval, max_usage_percent);
 }
