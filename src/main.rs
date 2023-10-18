@@ -18,12 +18,8 @@ macro_rules! abort(
 );
 
 fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64, max_usage_percent: u64) {
-    let mut used_path_resolved: String = used_path.clone();
-    if used_path_resolved.is_empty() {
-        used_path_resolved = default_used_memory_file();
-    }
     // read both files once to make sure they exist before we start our child
-    read_file(&used_path_resolved);
+    read_file(&used_path);
     read_file(&max_path);
 
     // start monitored child process
@@ -45,7 +41,7 @@ fn do_work(args: Vec<String>, max_path: String, used_path: String, interval: u64
             }
 
             // used is a single number of bytes
-            let used = parse_int(&read_file(&used_path_resolved));
+            let used = parse_int(&read_file(&used_path));
 
             // max is bytes after hierarchical_memory_limit adjusted by what the user deems safe
             let max_allowed = {
@@ -107,7 +103,7 @@ fn default_used_memory_file() -> String {
     } else if std::path::Path::new(&CGROUPS1_FILE).exists() {
         return CGROUPS1_FILE.to_string();
     } else {
-        abort!("Could not open /sys/fs/cgroup/memory.current or /sys/fs/cgroup/memory/memory.usage_in_bytes");
+        abort!("Could not open {} or {}", CGROUPS2_FILE, CGROUPS1_FILE);
     }
 }
 fn main() {
@@ -117,7 +113,7 @@ fn main() {
     let mut opts = getopts::Options::new();
     opts.parsing_style(getopts::ParsingStyle::StopAtFirstFree);
     opts.optopt("m", "max-memory-file", "set file to read maximum memory from, default: /sys/fs/cgroup/memory/memory.stat", "PATH");
-    opts.optopt("u", "used-memory-file", "set file to read used memory from, default: /sys/fs/cgroup/memory.current or /sys/fs/cgroup/memory/memory.usage_in_bytes", "PATH"); // cgroups2 vs cgroups1
+    opts.optopt("u", "used-memory-file", &*format!("set file to read used memory from, default: {} or {}", CGROUPS2_FILE, CGROUPS1_FILE), "PATH"); // cgroups2 vs cgroups1
     opts.optopt("i", "interval", "how often to check memory usage, default: 1", "SECONDS");
     opts.optopt("p", "percent", "maximum memory usage percent, default: 90", "PERCENT"); // TODO: float support
     opts.optflag("h", "help", "print this help menu");
@@ -153,6 +149,10 @@ fn main() {
     // Parse used-memory file location or use default
     let used_memory_file = matches.opt_str("used-memory-file").
         unwrap_or_else(|| "".to_string());
+    let mut used_path_resolved: String = used_memory_file.clone();
+    if used_path_resolved.is_empty() {
+        used_path_resolved = default_used_memory_file();
+    }
 
     // Parse interval to milliseconds
     let interval = {
@@ -166,5 +166,5 @@ fn main() {
         abort!("Using >= 100 percent of memory will never happen since the process would already be OOM")
     }
 
-    do_work(matches.free, max_memory_file, used_memory_file, interval, max_usage_percent);
+    do_work(matches.free, max_memory_file, used_path_resolved, interval, max_usage_percent);
 }

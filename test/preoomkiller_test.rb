@@ -39,7 +39,7 @@ describe 'Preoomkiller' do
   end
 
   it "complains when trying to use 100 percent memory" do
-    preoomkiller("-p 100 echo 1 2 3", success: false).must_equal(
+    preoomkiller("-u test/fixtures/used.txt -p 100 echo 1 2 3", success: false).must_equal(
       "Using >= 100 percent of memory will never happen since the process would already be OOM\n"
     )
   end
